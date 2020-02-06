@@ -102,5 +102,22 @@ def run_translator():
     #Step 5: Play Audio
     play_audio('spanish_speech.wav')
 
+    #Step 6-10 Repeats steps 1-5 translating from Spanish to English
+    input("Press Enter and respond in Spanish")
+    record_audio("spanish_response.wav")
+    spanish_text = speech_to_text("spanish_response.wav", "es-ES_BroadbandModel")
+    ## Print to screen and save question to file for reference
+    print(spanish_text)
+    with open("spanish_transcript.txt", 'w') as output_handle:
+        output_handle.write(spanish_text)
+
+    english_text = translate_text(spanish_text, 'es-en')
+    print("English Translation of Spanish text:")
+    print(english_text)
+
+    text_to_speech(english_text, 'en-US_AllisonVoice', 'english_response.wav')
+    play_audio('english_response.wav')
+
+
 if __name__ == '__main__':
     run_translator()
