@@ -1,0 +1,47 @@
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 127.0.0.1:38023         0.0.0.0:*               LISTEN      16920/python        
+tcp        0      0 127.0.0.1:39209         0.0.0.0:*               LISTEN      16920/python        
+tcp        0      0 127.0.0.1:39915         0.0.0.0:*               LISTEN      16920/python        
+tcp        0      0 127.0.0.1:40973         0.0.0.0:*               LISTEN      1293/python         
+tcp        0      0 127.0.0.1:42319         0.0.0.0:*               LISTEN      16920/python        
+tcp        0      0 127.0.0.1:56369         0.0.0.0:*               LISTEN      1293/python         
+tcp        0      0 127.0.0.1:45651         0.0.0.0:*               LISTEN      1293/python         
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      -                   
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:631           0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:8888          0.0.0.0:*               LISTEN      28148/python        
+tcp        0      0 127.0.0.1:5432          0.0.0.0:*               LISTEN      -                   
+tcp        0      0 0.0.0.0:25              0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:5433          0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:5434          0.0.0.0:*               LISTEN      -                   
+tcp        0      0 127.0.0.1:34267         0.0.0.0:*               LISTEN      16920/python        
+tcp        0      0 127.0.0.1:45435         0.0.0.0:*               LISTEN      1293/python         
+tcp        0      0 127.0.0.1:38525         0.0.0.0:*               LISTEN      16920/python        
+tcp        0      0 127.0.0.1:44317         0.0.0.0:*               LISTEN      1293/python         
+tcp        0      0 127.0.0.1:49919         0.0.0.0:*               LISTEN      1293/python         
+tcp6       0      0 :::2377                 :::*                    LISTEN      -                   
+tcp6       0      0 :::7946                 :::*                    LISTEN      -                   
+tcp6       0      0 :::3306                 :::*                    LISTEN      -                   
+tcp6       0      0 :::1716                 :::*                    LISTEN      3551/kdeconnectd    
+tcp6       0      0 :::22                   :::*                    LISTEN      -                   
+tcp6       0      0 ::1:631                 :::*                    LISTEN      -                   
+tcp6       0      0 :::25                   :::*                    LISTEN      -                   
+udp        0      0 0.0.0.0:631             0.0.0.0:*                           -                   
+udp        0      0 0.0.0.0:4789            0.0.0.0:*                           -                   
+udp        0      0 0.0.0.0:46224           0.0.0.0:*                           -                   
+udp        0      0 224.0.0.251:5353        0.0.0.0:*                           1578/chrome --type= 
+udp        0      0 224.0.0.251:5353        0.0.0.0:*                           1527/chrome         
+udp        0      0 224.0.0.251:5353        0.0.0.0:*                           1527/chrome         
+udp        0      0 224.0.0.251:5353        0.0.0.0:*                           1527/chrome         
+udp        0      0 224.0.0.251:5353        0.0.0.0:*                           1578/chrome --type= 
+udp        0      0 224.0.0.251:5353        0.0.0.0:*                           1578/chrome --type= 
+udp        0      0 224.0.0.251:5353        0.0.0.0:*                           28281/opera --type= 
+udp        0      0 224.0.0.251:5353        0.0.0.0:*                           28281/opera --type= 
+udp        0      0 0.0.0.0:5353            0.0.0.0:*                           -                   
+udp        0      0 127.0.0.53:53           0.0.0.0:*                           -                   
+udp        0      0 0.0.0.0:68              0.0.0.0:*                           -                   
+udp6       0      0 :::5353                 :::*                                -                   
+udp6       0      0 :::1716                 :::*                                3551/kdeconnectd    
+udp6       0      0 :::48259                :::*                                -                   
+udp6       0      0 :::7946                 :::*                                -                   
