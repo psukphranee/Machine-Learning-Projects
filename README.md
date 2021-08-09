@@ -1,3 +1,3 @@
 # About
 
-This repo contains work I've down on my self-guided journey through Python and Machine Learning. 
+This repo contains work I've done on my self-guided study through Python and Machine Learning. 
