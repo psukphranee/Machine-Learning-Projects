@@ -1,4 +1,4 @@
-# Simple Translator using IBM Watson
+# Translator using IBM Watson
 
 ## Introduction
 This script records 5 seconds of audio in English and translates it into Spanish speech.
