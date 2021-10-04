@@ -6,20 +6,12 @@ function [J, grad] = costFunction(theta, X, y)
 
 % Initialize some useful values
 m = length(y); % number of training examples
-h = X*theta;
+h = sigmoid(X*theta);
 
-log_h = log(h);
-log_h(isinf(log_h)) = -1;
+% You need to return the following variables correctly 
+J = -1/m * (y'* log(h) + (1-y)'*log(1-h));
+grad = -1/m * X'*(y-h);
 
-log_1mh = log(1-h);
-log_1mh(isinf(log_1mh)) = -1;
-
-% You need to return the following variables correctly
-J = -1/m * (y'*log_h + (1-y)'*log_1mh);
-
-for i=1:length(theta)
-    grad(i) = J*theta(i)
-end
 
 
 % ====================== YOUR CODE HERE ======================
