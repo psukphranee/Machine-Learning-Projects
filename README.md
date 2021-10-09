@@ -1,3 +1,7 @@
 # About
 
-This repo contains work I've done on my self-guided study through Python and Machine Learning. 
+## Hand On Machine Learning
+Implement ML on datasets using Python and Sci-kit Learn
+
+## MATLAB
+Implement ML algorithms in MATLAB. Part of Coursera ML by Stanford University. 
