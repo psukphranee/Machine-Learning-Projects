@@ -5,9 +5,11 @@ function p = predict(theta, X)
 %   threshold at 0.5 (i.e., if sigmoid(theta'*x) >= 0.5, predict 1)
 
 m = size(X, 1); % Number of training examples
-
+%X = [ones(m,1) , X];
 % You need to return the following variables correctly
-p = zeros(m, 1);
+
+
+p = round(sigmoid(X*theta));
 
 % ====================== YOUR CODE HERE ======================
 % Instructions: Complete the following code to make predictions using
