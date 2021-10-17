@@ -12,16 +12,14 @@ p = zeros(size(X, 1), 1);
 
 %add bias
 X = [ones(m, 1) X];
-h1 = sigmoid(X*Theta1');
-
-%add bias to result
-h1 = [ones(m, 1) h1];
-h2 = h1*Theta2';
-
+h = sigmoid(X*all_theta');
 %get max elements and indices
-[M, I] = max(h2, [], 2);
+[M, I] = max(h, [], 2);
 p = I;
 
+p0 = X*Theta1';
+p0 = [1; p0];
+p = p0'*Theta2';
 
 % ====================== YOUR CODE HERE ======================
 % Instructions: Complete the following code to make predictions using
