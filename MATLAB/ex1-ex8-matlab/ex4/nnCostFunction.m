@@ -63,29 +63,51 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+%iterate through samples, rows of X
+for i=1:m
+    a1 = X(i,:); %row vector. assign the current sample to 'a'
+    %add bias term to current sample strored in 'a'
+    a1 = [1, a1];
+    %get activation a2 and add bias term to it
+    a2 = sigmoid(Theta1 * a1');
+    a2 = [1; a2]; %column vector
+    %output vector h, column vector
+    h = sigmoid(Theta2 * a2); 
+    
+    %create a 'num_labels' long vector of 0's and set to 1 the correct
+    %target class. the y(i) contains the target value of the current i-th
+    %sample. e.g. y(i) = 9. So we set the 9-th entry of the vector to 1.
+    %Note that 0 is mapped to 10.
+    y_i = zeros(num_labels, 1);
+    y_i(y(i)) = 1;
+    
+    %accumulate to the total cost, the cost of the current training example
+    J = J + (-1/m * (y_i'* log(h) + (1-y_i)'*log(1-h)));
+    
+    %------------------back propogation---------------------%
+    delta_3 = h - y_i; %delta of last layer is different in last hypothese minus the target
+    delta_2 = (Theta2' * delta_3) .* a2 .* (1 - a2); %follow backprop algorithm
+    
+    Theta1_grad = Theta1_grad + delta_2(2:end)*a1;
+    Theta2_grad = Theta2_grad + delta_3*a2';
+end
 
 
 % -------------------------------------------------------------
 
 % =========================================================================
 
+%implement regulariztion with cost function
+J = J + (lambda/(2*m))*(trace(Theta1(:,2:end)'*Theta1(:,2:end)) + trace(Theta2(:,2:end)'*Theta2(:,2:end)));
+
+%regularize gradient first
+%at this point Theta1 and Theta2 arent being used so I'm going to zero out
+%the first column of each for streamlining the regularization part.
+Theta1(:,1) = 0;
+Theta2(:,1) = 0;
+Theta1_grad = (1/m) * (Theta1_grad + lambda*Theta1);
+Theta2_grad = (1/m) * (Theta2_grad + lambda*Theta2);
+
 % Unroll gradients
 grad = [Theta1_grad(:) ; Theta2_grad(:)];
 
-
-end

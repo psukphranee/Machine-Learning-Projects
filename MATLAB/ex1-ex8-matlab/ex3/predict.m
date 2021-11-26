@@ -10,17 +10,7 @@ num_labels = size(Theta2, 1);
 % You need to return the following variables correctly 
 p = zeros(size(X, 1), 1);
 
-%add bias
-X = [ones(m, 1) X];
-h1 = sigmoid(X*Theta1');
 
-%add bias to result
-h1 = [ones(m, 1) h1];
-h2 = h1*Theta2';
-
-%get max elements and indices
-[M, I] = max(h2, [], 2);
-p = I;
 
 
 % ====================== YOUR CODE HERE ======================
@@ -35,7 +25,17 @@ p = I;
 %
 
 
+%add bias
+X = [ones(m, 1) X];
+h1 = sigmoid(X*Theta1');
 
+%add bias to result
+h1 = [ones(m, 1) h1];
+h2 = h1*Theta2';
+
+%get max elements and indices
+[M, I] = max(h2, [], 2);
+p = I;
 
 
 
