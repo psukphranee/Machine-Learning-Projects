@@ -21,10 +21,20 @@ idx = zeros(size(X,1), 1);
 % Note: You can use a for-loop over the examples to compute this.
 %
 
-
-
-
-
+%loop thru rows of X
+for i=1:length(X)
+    
+    %assign next row to x and reset the centroids matrix
+    centroids_copy = centroids;
+    x = X(i,:);
+    
+    %take difference between centroid locations and current sample
+    centroids_copy = centroids_copy - x;
+    %calculate the norm of each
+    norm_sqd =  diag(centroids_copy * centroids_copy');
+    %assign to idx the index of the minimum norm
+    idx(i) = find(norm_sqd == min(norm_sqd));
+end
 
 
 % =============================================================
