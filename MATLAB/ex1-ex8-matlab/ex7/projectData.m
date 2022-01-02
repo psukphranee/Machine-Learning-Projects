@@ -18,6 +18,10 @@ Z = zeros(size(X, 1), K);
 %                    projection_k = x' * U(:, k);
 %
 
+%extract the first K eigenvectors from U
+subspace_basis = U(:,1:K);
+
+Z = X*subspace_basis;
 
 
 

@@ -26,7 +26,12 @@ centroids = zeros(K, n);
 % Note: You can use a for-loop over the centroids to compute this.
 %
 
-
+%loop through each centroid
+for k=1:K
+    
+    C_k_sum = sum(idx==k); %number of samples assigned to centroid k
+    centroids(k, :) = sum(X((idx==k),:))/C_k_sum;
+end
 
 
 
