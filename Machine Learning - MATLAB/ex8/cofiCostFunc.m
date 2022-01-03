@@ -41,10 +41,15 @@ Theta_grad = zeros(size(Theta));
 %
 
 m = sum(sum(R));
-J = sum(((X*Theta' - Y).*R).^2, 'all')/2;
+%J = sum(((X*Theta' - Y).*R).^2, 'all')/2; %unregularized cost
 
+X_no_bias = X(1:end, 1:end);
+T_no_bias = Theta(1:end, 1:end);
 
+J = sum(((X*Theta' - Y).*R).^2, 'all')/2 + (lambda/2)*(sum(diag(X_no_bias*X_no_bias')) + sum(diag(T_no_bias*T_no_bias'))); %regularized cost
 
+X_grad = ((X*Theta' - Y).*R)*Theta + lambda*X;
+Theta_grad = ((X*Theta' - Y).*R)'*X + lambda*Theta;
 % =============================================================
 
 grad = [X_grad(:); Theta_grad(:)];
