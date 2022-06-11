@@ -1,0 +1,32 @@
+CH10
+
+Building MLP with Keras. Keras is a high level API that works with Tensorflow.
+In this project we'll build a model that predicts the type of clothing article. There will be 10 categories to classify each sample into. We first load the Fashion MNIST dataset using keras.
+
+The data is already split into training and test sets. We'll extract a subset of the training set for validation. 
+
+I. Building an Image Classifier
+
+Fashion MNIST 70,000; 28x28; 10 classes
+
+    A. Using Keras to load the dataset
+
+    28x28 images. pixes 0-225. 
+    use Gradient Descent => normalize intensities
+
+    B. Create the model using Sequential API
+
+    Defines a Sequential model and the uses its add() method to add layers. The first layer is Flatten(input_shape=[])
+    -add Dense() layers specifying number of neurons and activation function.
+    -the final layer is also dense with 10 neurons and softmax activation
+
+    The above can be streamlined into one process. Specifying the layers in a list to the Sequential constructor. 
+
+    C. Compile the model
+
+    compile() the model. specify loss, optimizer function, and optionally metrics. 
+
+    D. Train model
+
+    fit(). validation set is optional. metrics and loss evaluated after each epoch.
+
