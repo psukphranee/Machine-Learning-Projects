@@ -1,0 +1,1109 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/psukphranee/Machine-Learning-Projects/blob/master/%5Badapted%5D%20diff_foley_training\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "ve6rOahJHJST"
+      },
+      "source": [
+        "# Diff-Foley: Inference Pipeline.\n",
+        "\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Mount Google Drive."
+      ],
+      "metadata": {
+        "id": "RezdwikBHYbS"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from google.colab import drive\n",
+        "drive.mount('/content/drive')\n",
+        "\n",
+        "%ls"
+      ],
+      "metadata": {
+        "id": "4txGb6mnb0gW",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "00129635-cc39-45c9-909d-242324cddbba"
+      },
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Mounted at /content/drive\n",
+            "\u001b[0m\u001b[01;34mdrive\u001b[0m/  \u001b[01;34msample_data\u001b[0m/\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Install Dependencies"
+      ],
+      "metadata": {
+        "id": "S0ld7b5mHwKS"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "There are some packages that require restarting the kernel so put them in different cells"
+      ],
+      "metadata": {
+        "id": "y8eeWsYyO47p"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#REQUIRES RESTARTING KERNEL\n",
+        "!pip install -U openmim"
+      ],
+      "metadata": {
+        "id": "3RkLyh7dPGOq",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 1000
+        },
+        "collapsed": true,
+        "outputId": "3d3c5118-5869-4c39-f5ce-eb8d8c806950"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting openmim\n",
+            "  Downloading openmim-0.3.9-py2.py3-none-any.whl.metadata (16 kB)\n",
+            "Requirement already satisfied: Click in /usr/local/lib/python3.10/dist-packages (from openmim) (8.1.7)\n",
+            "Collecting colorama (from openmim)\n",
+            "  Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)\n",
+            "Collecting model-index (from openmim)\n",
+            "  Downloading model_index-0.1.11-py3-none-any.whl.metadata (3.9 kB)\n",
+            "Collecting opendatalab (from openmim)\n",
+            "  Downloading opendatalab-0.0.10-py3-none-any.whl.metadata (6.4 kB)\n",
+            "Requirement already satisfied: pandas in /usr/local/lib/python3.10/dist-packages (from openmim) (2.0.3)\n",
+            "Requirement already satisfied: pip>=19.3 in /usr/local/lib/python3.10/dist-packages (from openmim) (24.1.2)\n",
+            "Requirement already satisfied: requests in /usr/local/lib/python3.10/dist-packages (from openmim) (2.31.0)\n",
+            "Requirement already satisfied: rich in /usr/local/lib/python3.10/dist-packages (from openmim) (13.7.1)\n",
+            "Requirement already satisfied: tabulate in /usr/local/lib/python3.10/dist-packages (from openmim) (0.9.0)\n",
+            "Requirement already satisfied: pyyaml in /usr/local/lib/python3.10/dist-packages (from model-index->openmim) (6.0.1)\n",
+            "Requirement already satisfied: markdown in /usr/local/lib/python3.10/dist-packages (from model-index->openmim) (3.6)\n",
+            "Collecting ordered-set (from model-index->openmim)\n",
+            "  Downloading ordered_set-4.1.0-py3-none-any.whl.metadata (5.3 kB)\n",
+            "Collecting pycryptodome (from opendatalab->openmim)\n",
+            "  Downloading pycryptodome-3.20.0-cp35-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (3.4 kB)\n",
+            "Requirement already satisfied: tqdm in /usr/local/lib/python3.10/dist-packages (from opendatalab->openmim) (4.66.4)\n",
+            "Collecting openxlab (from opendatalab->openmim)\n",
+            "  Downloading openxlab-0.1.1-py3-none-any.whl.metadata (3.8 kB)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/dist-packages (from requests->openmim) (3.3.2)\n",
+            "Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.10/dist-packages (from requests->openmim) (3.7)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.10/dist-packages (from requests->openmim) (2.0.7)\n",
+            "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.10/dist-packages (from requests->openmim) (2024.7.4)\n",
+            "Requirement already satisfied: python-dateutil>=2.8.2 in /usr/local/lib/python3.10/dist-packages (from pandas->openmim) (2.8.2)\n",
+            "Requirement already satisfied: pytz>=2020.1 in /usr/local/lib/python3.10/dist-packages (from pandas->openmim) (2023.4)\n",
+            "Requirement already satisfied: tzdata>=2022.1 in /usr/local/lib/python3.10/dist-packages (from pandas->openmim) (2024.1)\n",
+            "Requirement already satisfied: numpy>=1.21.0 in /usr/local/lib/python3.10/dist-packages (from pandas->openmim) (1.25.2)\n",
+            "Requirement already satisfied: markdown-it-py>=2.2.0 in /usr/local/lib/python3.10/dist-packages (from rich->openmim) (3.0.0)\n",
+            "Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /usr/local/lib/python3.10/dist-packages (from rich->openmim) (2.16.1)\n",
+            "Requirement already satisfied: mdurl~=0.1 in /usr/local/lib/python3.10/dist-packages (from markdown-it-py>=2.2.0->rich->openmim) (0.1.2)\n",
+            "Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.10/dist-packages (from python-dateutil>=2.8.2->pandas->openmim) (1.16.0)\n",
+            "Collecting filelock~=3.14.0 (from openxlab->opendatalab->openmim)\n",
+            "  Downloading filelock-3.14.0-py3-none-any.whl.metadata (2.8 kB)\n",
+            "Collecting oss2~=2.17.0 (from openxlab->opendatalab->openmim)\n",
+            "  Downloading oss2-2.17.0.tar.gz (259 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m259.5/259.5 kB\u001b[0m \u001b[31m20.7 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25h  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Requirement already satisfied: packaging~=24.0 in /usr/local/lib/python3.10/dist-packages (from openxlab->opendatalab->openmim) (24.1)\n",
+            "Collecting requests (from openmim)\n",
+            "  Downloading requests-2.28.2-py3-none-any.whl.metadata (4.6 kB)\n",
+            "Collecting rich (from openmim)\n",
+            "  Downloading rich-13.4.2-py3-none-any.whl.metadata (18 kB)\n",
+            "Collecting setuptools~=60.2.0 (from openxlab->opendatalab->openmim)\n",
+            "  Downloading setuptools-60.2.0-py3-none-any.whl.metadata (5.1 kB)\n",
+            "Collecting tqdm (from opendatalab->openmim)\n",
+            "  Downloading tqdm-4.65.2-py3-none-any.whl.metadata (56 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m57.0/57.0 kB\u001b[0m \u001b[31m5.0 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hCollecting urllib3<1.27,>=1.21.1 (from requests->openmim)\n",
+            "  Downloading urllib3-1.26.19-py2.py3-none-any.whl.metadata (49 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m49.3/49.3 kB\u001b[0m \u001b[31m4.7 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hCollecting crcmod>=1.7 (from oss2~=2.17.0->openxlab->opendatalab->openmim)\n",
+            "  Downloading crcmod-1.7.tar.gz (89 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m89.7/89.7 kB\u001b[0m \u001b[31m8.4 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25h  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Collecting aliyun-python-sdk-kms>=2.4.1 (from oss2~=2.17.0->openxlab->opendatalab->openmim)\n",
+            "  Downloading aliyun_python_sdk_kms-2.16.3-py2.py3-none-any.whl.metadata (1.5 kB)\n",
+            "Collecting aliyun-python-sdk-core>=2.13.12 (from oss2~=2.17.0->openxlab->opendatalab->openmim)\n",
+            "  Downloading aliyun-python-sdk-core-2.15.1.tar.gz (443 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m443.1/443.1 kB\u001b[0m \u001b[31m35.4 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25h  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Collecting jmespath<1.0.0,>=0.9.3 (from aliyun-python-sdk-core>=2.13.12->oss2~=2.17.0->openxlab->opendatalab->openmim)\n",
+            "  Downloading jmespath-0.10.0-py2.py3-none-any.whl.metadata (8.0 kB)\n",
+            "Requirement already satisfied: cryptography>=2.6.0 in /usr/local/lib/python3.10/dist-packages (from aliyun-python-sdk-core>=2.13.12->oss2~=2.17.0->openxlab->opendatalab->openmim) (43.0.0)\n",
+            "Requirement already satisfied: cffi>=1.12 in /usr/local/lib/python3.10/dist-packages (from cryptography>=2.6.0->aliyun-python-sdk-core>=2.13.12->oss2~=2.17.0->openxlab->opendatalab->openmim) (1.16.0)\n",
+            "Requirement already satisfied: pycparser in /usr/local/lib/python3.10/dist-packages (from cffi>=1.12->cryptography>=2.6.0->aliyun-python-sdk-core>=2.13.12->oss2~=2.17.0->openxlab->opendatalab->openmim) (2.22)\n",
+            "Downloading openmim-0.3.9-py2.py3-none-any.whl (52 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m52.7/52.7 kB\u001b[0m \u001b[31m5.1 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)\n",
+            "Downloading model_index-0.1.11-py3-none-any.whl (34 kB)\n",
+            "Downloading opendatalab-0.0.10-py3-none-any.whl (29 kB)\n",
+            "Downloading openxlab-0.1.1-py3-none-any.whl (308 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m308.6/308.6 kB\u001b[0m \u001b[31m28.7 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading requests-2.28.2-py3-none-any.whl (62 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m62.8/62.8 kB\u001b[0m \u001b[31m5.8 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading rich-13.4.2-py3-none-any.whl (239 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m239.4/239.4 kB\u001b[0m \u001b[31m22.7 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading tqdm-4.65.2-py3-none-any.whl (77 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m77.1/77.1 kB\u001b[0m \u001b[31m7.5 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading urllib3-1.26.19-py2.py3-none-any.whl (143 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m143.9/143.9 kB\u001b[0m \u001b[31m14.4 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading ordered_set-4.1.0-py3-none-any.whl (7.6 kB)\n",
+            "Downloading pycryptodome-3.20.0-cp35-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m2.1/2.1 MB\u001b[0m \u001b[31m79.3 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading filelock-3.14.0-py3-none-any.whl (12 kB)\n",
+            "Downloading setuptools-60.2.0-py3-none-any.whl (953 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m953.1/953.1 kB\u001b[0m \u001b[31m61.9 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading aliyun_python_sdk_kms-2.16.3-py2.py3-none-any.whl (98 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m98.1/98.1 kB\u001b[0m \u001b[31m9.6 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading jmespath-0.10.0-py2.py3-none-any.whl (24 kB)\n",
+            "Building wheels for collected packages: oss2, aliyun-python-sdk-core, crcmod\n",
+            "  Building wheel for oss2 (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for oss2: filename=oss2-2.17.0-py3-none-any.whl size=112373 sha256=b08485d4958905ffbbca772ee79dcd07fca8c7234480e2da0192002c570738d2\n",
+            "  Stored in directory: /root/.cache/pip/wheels/87/04/7b/7e61b8157fdf211c5131375240d0d86ca82e2a88ead9672c88\n",
+            "  Building wheel for aliyun-python-sdk-core (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for aliyun-python-sdk-core: filename=aliyun_python_sdk_core-2.15.1-py3-none-any.whl size=535325 sha256=cf36807cbab76a092878c444ea5182f84553d67c9240fb50adb6da3661c48ff8\n",
+            "  Stored in directory: /root/.cache/pip/wheels/69/4b/8e/0a28e00f4cf43b273c18cce083804738d41013e017da922ce4\n",
+            "  Building wheel for crcmod (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for crcmod: filename=crcmod-1.7-cp310-cp310-linux_x86_64.whl size=31404 sha256=4a4f9268d725190c4dffb0414ba728b16fadb1e7db1803e6e8dbb2643110cfb6\n",
+            "  Stored in directory: /root/.cache/pip/wheels/85/4c/07/72215c529bd59d67e3dac29711d7aba1b692f543c808ba9e86\n",
+            "Successfully built oss2 aliyun-python-sdk-core crcmod\n",
+            "Installing collected packages: crcmod, urllib3, tqdm, setuptools, pycryptodome, ordered-set, jmespath, filelock, colorama, rich, requests, model-index, aliyun-python-sdk-core, aliyun-python-sdk-kms, oss2, openxlab, opendatalab, openmim\n",
+            "  Attempting uninstall: urllib3\n",
+            "    Found existing installation: urllib3 2.0.7\n",
+            "    Uninstalling urllib3-2.0.7:\n",
+            "      Successfully uninstalled urllib3-2.0.7\n",
+            "  Attempting uninstall: tqdm\n",
+            "    Found existing installation: tqdm 4.66.4\n",
+            "    Uninstalling tqdm-4.66.4:\n",
+            "      Successfully uninstalled tqdm-4.66.4\n",
+            "  Attempting uninstall: setuptools\n",
+            "    Found existing installation: setuptools 71.0.4\n",
+            "    Uninstalling setuptools-71.0.4:\n",
+            "      Successfully uninstalled setuptools-71.0.4\n",
+            "  Attempting uninstall: filelock\n",
+            "    Found existing installation: filelock 3.15.4\n",
+            "    Uninstalling filelock-3.15.4:\n",
+            "      Successfully uninstalled filelock-3.15.4\n",
+            "  Attempting uninstall: rich\n",
+            "    Found existing installation: rich 13.7.1\n",
+            "    Uninstalling rich-13.7.1:\n",
+            "      Successfully uninstalled rich-13.7.1\n",
+            "  Attempting uninstall: requests\n",
+            "    Found existing installation: requests 2.31.0\n",
+            "    Uninstalling requests-2.31.0:\n",
+            "      Successfully uninstalled requests-2.31.0\n",
+            "\u001b[31mERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.\n",
+            "ipython 7.34.0 requires jedi>=0.16, which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-cublas-cu12==12.1.3.1; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-cuda-cupti-cu12==12.1.105; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-cuda-nvrtc-cu12==12.1.105; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-cuda-runtime-cu12==12.1.105; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-cudnn-cu12==8.9.2.26; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-cufft-cu12==11.0.2.54; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-curand-cu12==10.3.2.106; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-cusolver-cu12==11.4.5.107; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-cusparse-cu12==12.1.0.106; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-nccl-cu12==2.20.5; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "torch 2.3.1+cu121 requires nvidia-nvtx-cu12==12.1.105; platform_system == \"Linux\" and platform_machine == \"x86_64\", which is not installed.\n",
+            "cvxpy 1.3.4 requires setuptools>65.5.1, but you have setuptools 60.2.0 which is incompatible.\n",
+            "google-colab 1.0.0 requires requests==2.31.0, but you have requests 2.28.2 which is incompatible.\n",
+            "yfinance 0.2.41 requires requests>=2.31, but you have requests 2.28.2 which is incompatible.\u001b[0m\u001b[31m\n",
+            "\u001b[0mSuccessfully installed aliyun-python-sdk-core-2.15.1 aliyun-python-sdk-kms-2.16.3 colorama-0.4.6 crcmod-1.7 filelock-3.14.0 jmespath-0.10.0 model-index-0.1.11 opendatalab-0.0.10 openmim-0.3.9 openxlab-0.1.1 ordered-set-4.1.0 oss2-2.17.0 pycryptodome-3.20.0 requests-2.28.2 rich-13.4.2 setuptools-60.2.0 tqdm-4.65.2 urllib3-1.26.19\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "application/vnd.colab-display-data+json": {
+              "pip_warning": {
+                "packages": [
+                  "_distutils_hack",
+                  "pkg_resources",
+                  "setuptools"
+                ]
+              },
+              "id": "7ab8a3fb1a624a149dd209891949a590"
+            }
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#REQUIRES RESTART\n",
+        "!pip install omegaconf #required in Stage 2 LDM"
+      ],
+      "metadata": {
+        "id": "VI5PZzshJcTx",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 391
+        },
+        "collapsed": true,
+        "outputId": "922f6086-f5e3-4736-8064-b81d3a9b876a"
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting omegaconf\n",
+            "  Downloading omegaconf-2.3.0-py3-none-any.whl.metadata (3.9 kB)\n",
+            "Collecting antlr4-python3-runtime==4.9.* (from omegaconf)\n",
+            "  Downloading antlr4-python3-runtime-4.9.3.tar.gz (117 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m117.0/117.0 kB\u001b[0m \u001b[31m4.6 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25h  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Requirement already satisfied: PyYAML>=5.1.0 in /usr/local/lib/python3.10/dist-packages (from omegaconf) (6.0.1)\n",
+            "Downloading omegaconf-2.3.0-py3-none-any.whl (79 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m79.5/79.5 kB\u001b[0m \u001b[31m5.1 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hBuilding wheels for collected packages: antlr4-python3-runtime\n",
+            "  Building wheel for antlr4-python3-runtime (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for antlr4-python3-runtime: filename=antlr4_python3_runtime-4.9.3-py3-none-any.whl size=144576 sha256=f1c4e62c8f22a0b61e6792ff149d290ffa7129d919c2ae3e450236aa3676525b\n",
+            "  Stored in directory: /root/.cache/pip/wheels/12/93/dd/1f6a127edc45659556564c5730f6d4e300888f4bca2d4c5a88\n",
+            "Successfully built antlr4-python3-runtime\n",
+            "Installing collected packages: antlr4-python3-runtime, omegaconf\n",
+            "Successfully installed antlr4-python3-runtime-4.9.3 omegaconf-2.3.0\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "application/vnd.colab-display-data+json": {
+              "pip_warning": {
+                "packages": [
+                  "pydevd_plugins"
+                ]
+              },
+              "id": "e2c7f5e72f7b43b59178a51e748ca894"
+            }
+          },
+          "metadata": {}
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#REQUIRES KERNEL RESTART\n",
+        "#FOR STAGE 2\n",
+        "!pip install torchmetrics==0.11.4"
+      ],
+      "metadata": {
+        "id": "AUJBTqgr15VT",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "collapsed": true,
+        "outputId": "7a5f309e-e7c0-44c1-9806-ce0125e04039"
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting torchmetrics==0.11.4\n",
+            "  Downloading torchmetrics-0.11.4-py3-none-any.whl.metadata (15 kB)\n",
+            "Requirement already satisfied: numpy>=1.17.2 in /usr/local/lib/python3.10/dist-packages (from torchmetrics==0.11.4) (1.25.2)\n",
+            "Requirement already satisfied: torch>=1.8.1 in /usr/local/lib/python3.10/dist-packages (from torchmetrics==0.11.4) (2.3.1+cu121)\n",
+            "Requirement already satisfied: packaging in /usr/local/lib/python3.10/dist-packages (from torchmetrics==0.11.4) (24.1)\n",
+            "Requirement already satisfied: filelock in /usr/local/lib/python3.10/dist-packages (from torch>=1.8.1->torchmetrics==0.11.4) (3.14.0)\n",
+            "Requirement already satisfied: typing-extensions>=4.8.0 in /usr/local/lib/python3.10/dist-packages (from torch>=1.8.1->torchmetrics==0.11.4) (4.12.2)\n",
+            "Requirement already satisfied: sympy in /usr/local/lib/python3.10/dist-packages (from torch>=1.8.1->torchmetrics==0.11.4) (1.13.1)\n",
+            "Requirement already satisfied: networkx in /usr/local/lib/python3.10/dist-packages (from torch>=1.8.1->torchmetrics==0.11.4) (3.3)\n",
+            "Requirement already satisfied: jinja2 in /usr/local/lib/python3.10/dist-packages (from torch>=1.8.1->torchmetrics==0.11.4) (3.1.4)\n",
+            "Requirement already satisfied: fsspec in /usr/local/lib/python3.10/dist-packages (from torch>=1.8.1->torchmetrics==0.11.4) (2023.6.0)\n",
+            "Collecting nvidia-cuda-nvrtc-cu12==12.1.105 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_cuda_nvrtc_cu12-12.1.105-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-cuda-runtime-cu12==12.1.105 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_cuda_runtime_cu12-12.1.105-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-cuda-cupti-cu12==12.1.105 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_cuda_cupti_cu12-12.1.105-py3-none-manylinux1_x86_64.whl.metadata (1.6 kB)\n",
+            "Collecting nvidia-cudnn-cu12==8.9.2.26 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_cudnn_cu12-8.9.2.26-py3-none-manylinux1_x86_64.whl.metadata (1.6 kB)\n",
+            "Collecting nvidia-cublas-cu12==12.1.3.1 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-cufft-cu12==11.0.2.54 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_cufft_cu12-11.0.2.54-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-curand-cu12==10.3.2.106 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_curand_cu12-10.3.2.106-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-cusolver-cu12==11.4.5.107 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_cusolver_cu12-11.4.5.107-py3-none-manylinux1_x86_64.whl.metadata (1.6 kB)\n",
+            "Collecting nvidia-cusparse-cu12==12.1.0.106 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_cusparse_cu12-12.1.0.106-py3-none-manylinux1_x86_64.whl.metadata (1.6 kB)\n",
+            "Collecting nvidia-nccl-cu12==2.20.5 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_nccl_cu12-2.20.5-py3-none-manylinux2014_x86_64.whl.metadata (1.8 kB)\n",
+            "Collecting nvidia-nvtx-cu12==12.1.105 (from torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Using cached nvidia_nvtx_cu12-12.1.105-py3-none-manylinux1_x86_64.whl.metadata (1.7 kB)\n",
+            "Requirement already satisfied: triton==2.3.1 in /usr/local/lib/python3.10/dist-packages (from torch>=1.8.1->torchmetrics==0.11.4) (2.3.1)\n",
+            "Collecting nvidia-nvjitlink-cu12 (from nvidia-cusolver-cu12==11.4.5.107->torch>=1.8.1->torchmetrics==0.11.4)\n",
+            "  Downloading nvidia_nvjitlink_cu12-12.5.82-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)\n",
+            "Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.10/dist-packages (from jinja2->torch>=1.8.1->torchmetrics==0.11.4) (2.1.5)\n",
+            "Requirement already satisfied: mpmath<1.4,>=1.1.0 in /usr/local/lib/python3.10/dist-packages (from sympy->torch>=1.8.1->torchmetrics==0.11.4) (1.3.0)\n",
+            "Downloading torchmetrics-0.11.4-py3-none-any.whl (519 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m519.2/519.2 kB\u001b[0m \u001b[31m13.3 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hUsing cached nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl (410.6 MB)\n",
+            "Using cached nvidia_cuda_cupti_cu12-12.1.105-py3-none-manylinux1_x86_64.whl (14.1 MB)\n",
+            "Using cached nvidia_cuda_nvrtc_cu12-12.1.105-py3-none-manylinux1_x86_64.whl (23.7 MB)\n",
+            "Using cached nvidia_cuda_runtime_cu12-12.1.105-py3-none-manylinux1_x86_64.whl (823 kB)\n",
+            "Using cached nvidia_cudnn_cu12-8.9.2.26-py3-none-manylinux1_x86_64.whl (731.7 MB)\n",
+            "Using cached nvidia_cufft_cu12-11.0.2.54-py3-none-manylinux1_x86_64.whl (121.6 MB)\n",
+            "Using cached nvidia_curand_cu12-10.3.2.106-py3-none-manylinux1_x86_64.whl (56.5 MB)\n",
+            "Using cached nvidia_cusolver_cu12-11.4.5.107-py3-none-manylinux1_x86_64.whl (124.2 MB)\n",
+            "Using cached nvidia_cusparse_cu12-12.1.0.106-py3-none-manylinux1_x86_64.whl (196.0 MB)\n",
+            "Using cached nvidia_nccl_cu12-2.20.5-py3-none-manylinux2014_x86_64.whl (176.2 MB)\n",
+            "Using cached nvidia_nvtx_cu12-12.1.105-py3-none-manylinux1_x86_64.whl (99 kB)\n",
+            "Downloading nvidia_nvjitlink_cu12-12.5.82-py3-none-manylinux2014_x86_64.whl (21.3 MB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m21.3/21.3 MB\u001b[0m \u001b[31m10.2 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hInstalling collected packages: nvidia-nvtx-cu12, nvidia-nvjitlink-cu12, nvidia-nccl-cu12, nvidia-curand-cu12, nvidia-cufft-cu12, nvidia-cuda-runtime-cu12, nvidia-cuda-nvrtc-cu12, nvidia-cuda-cupti-cu12, nvidia-cublas-cu12, nvidia-cusparse-cu12, nvidia-cudnn-cu12, nvidia-cusolver-cu12, torchmetrics\n",
+            "Successfully installed nvidia-cublas-cu12-12.1.3.1 nvidia-cuda-cupti-cu12-12.1.105 nvidia-cuda-nvrtc-cu12-12.1.105 nvidia-cuda-runtime-cu12-12.1.105 nvidia-cudnn-cu12-8.9.2.26 nvidia-cufft-cu12-11.0.2.54 nvidia-curand-cu12-10.3.2.106 nvidia-cusolver-cu12-11.4.5.107 nvidia-cusparse-cu12-12.1.0.106 nvidia-nccl-cu12-2.20.5 nvidia-nvjitlink-cu12-12.5.82 nvidia-nvtx-cu12-12.1.105 torchmetrics-0.11.4\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install pytorch-lightning==1.7\n",
+        "#REQUIRES KERNEL RESTART\n",
+        "# For stage 2, loading model\n",
+        "#pytorch lighting https://lightning.ai/docs/pytorch/1.7.7/. Use this version because some deprecated classes in current version."
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "0Io1LO_QpwuG",
+        "outputId": "194da5af-b581-4338-e753-d580b508e888",
+        "collapsed": true
+      },
+      "execution_count": 1,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting pytorch-lightning==1.7\n",
+            "  Downloading pytorch_lightning-1.7.0-py3-none-any.whl.metadata (27 kB)\n",
+            "\u001b[33mWARNING: Ignoring version 1.7.0 of pytorch-lightning since it has invalid metadata:\n",
+            "Requested pytorch-lightning==1.7 from https://files.pythonhosted.org/packages/2f/07/57fd85991eec4311b9945369158bca1322f801686d701322a65789852d46/pytorch_lightning-1.7.0-py3-none-any.whl has invalid metadata: .* suffix can only be used with `==` or `!=` operators\n",
+            "    torch (>=1.9.*)\n",
+            "           ~~~~~~^\n",
+            "Please use pip<24.1 if you need to use this version.\u001b[0m\u001b[33m\n",
+            "\u001b[0m\u001b[31mERROR: Could not find a version that satisfies the requirement pytorch-lightning==1.7 (from versions: 0.0.2, 0.2, 0.2.2, 0.2.3, 0.2.4, 0.2.4.1, 0.2.5, 0.2.5.1, 0.2.5.2, 0.2.6, 0.3, 0.3.1, 0.3.2, 0.3.3, 0.3.4, 0.3.4.1, 0.3.5, 0.3.6, 0.3.6.1, 0.3.6.3, 0.3.6.4, 0.3.6.5, 0.3.6.6, 0.3.6.7, 0.3.6.8, 0.3.6.9, 0.4.0, 0.4.1, 0.4.2, 0.4.3, 0.4.4, 0.4.5, 0.4.6, 0.4.7, 0.4.8, 0.4.9, 0.5.0, 0.5.1, 0.5.1.2, 0.5.1.3, 0.5.2, 0.5.2.1, 0.5.3, 0.5.3.1, 0.5.3.2, 0.5.3.3, 0.6.0, 0.7.1, 0.7.3, 0.7.5, 0.7.6, 0.8.1, 0.8.3, 0.8.4, 0.8.5, 0.9.0, 0.10.0, 1.0.0, 1.0.1, 1.0.2, 1.0.3, 1.0.4, 1.0.5, 1.0.6, 1.0.7, 1.0.8, 1.1.0, 1.1.1, 1.1.2, 1.1.3, 1.1.4, 1.1.5, 1.1.6, 1.1.7, 1.1.8, 1.2.0rc0, 1.2.0rc1, 1.2.0rc2, 1.2.0, 1.2.1, 1.2.2, 1.2.3, 1.2.4, 1.2.5, 1.2.6, 1.2.7, 1.2.8, 1.2.9, 1.2.10, 1.3.0rc1, 1.3.0rc2, 1.3.0rc3, 1.3.0, 1.3.1, 1.3.2, 1.3.3, 1.3.4, 1.3.5, 1.3.6, 1.3.7, 1.3.7.post0, 1.3.8, 1.4.0rc0, 1.4.0rc1, 1.4.0rc2, 1.4.0, 1.4.1, 1.4.2, 1.4.3, 1.4.4, 1.4.5, 1.4.6, 1.4.7, 1.4.8, 1.4.9, 1.5.0rc0, 1.5.0rc1, 1.5.0, 1.5.1, 1.5.2, 1.5.3, 1.5.4, 1.5.5, 1.5.6, 1.5.7, 1.5.8, 1.5.9, 1.5.10, 1.6.0rc0, 1.6.0rc1, 1.6.0, 1.6.1, 1.6.2, 1.6.3, 1.6.4, 1.6.5, 1.7.0rc0, 1.7.0rc1, 1.7.0, 1.7.1, 1.7.2, 1.7.3, 1.7.4, 1.7.5, 1.7.6, 1.7.7, 1.8.0rc0, 1.8.0rc1, 1.8.0rc2, 1.8.0, 1.8.0.post1, 1.8.1, 1.8.2, 1.8.3, 1.8.3.post0, 1.8.3.post1, 1.8.3.post2, 1.8.4, 1.8.4.post0, 1.8.5, 1.8.5.post0, 1.8.6, 1.9.0rc0, 1.9.0, 1.9.1, 1.9.2, 1.9.3, 1.9.4, 1.9.5, 2.0.0rc0, 2.0.0, 2.0.1, 2.0.1.post0, 2.0.2, 2.0.3, 2.0.4, 2.0.5, 2.0.6, 2.0.7, 2.0.8, 2.0.9, 2.0.9.post0, 2.1.0rc0, 2.1.0rc1, 2.1.0, 2.1.1, 2.1.2, 2.1.3, 2.1.4, 2.2.0rc0, 2.2.0, 2.2.0.post0, 2.2.1, 2.2.2, 2.2.3, 2.2.4, 2.2.5, 2.3.0, 2.3.1, 2.3.2, 2.3.3)\u001b[0m\u001b[31m\n",
+            "\u001b[0m\u001b[31mERROR: No matching distribution found for pytorch-lightning==1.7\u001b[0m\u001b[31m\n",
+            "\u001b[0m"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install einops"
+      ],
+      "metadata": {
+        "id": "D-1m51vfO_j2",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "collapsed": true,
+        "outputId": "1b1aa625-a720-4026-9153-15414bdf9faf"
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting einops\n",
+            "  Downloading einops-0.8.0-py3-none-any.whl.metadata (12 kB)\n",
+            "Downloading einops-0.8.0-py3-none-any.whl (43 kB)\n",
+            "\u001b[?25l   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m0.0/43.2 kB\u001b[0m \u001b[31m?\u001b[0m eta \u001b[36m-:--:--\u001b[0m\r\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m43.2/43.2 kB\u001b[0m \u001b[31m3.5 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hInstalling collected packages: einops\n",
+            "Successfully installed einops-0.8.0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!mim install mmcv==1.3.4"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "HWA6Ss2sPidS",
+        "outputId": "c5b23854-4056-4057-f685-307c0a439510",
+        "collapsed": true
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Looking in links: https://download.openmmlab.com/mmcv/dist/cu121/torch2.3.0/index.html\n",
+            "Collecting mmcv==1.3.4\n",
+            "  Downloading mmcv-1.3.4.tar.gz (295 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m295.4/295.4 kB\u001b[0m \u001b[31m15.7 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25h  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Collecting addict (from mmcv==1.3.4)\n",
+            "  Downloading addict-2.4.0-py3-none-any.whl.metadata (1.0 kB)\n",
+            "Requirement already satisfied: numpy in /usr/local/lib/python3.10/dist-packages (from mmcv==1.3.4) (1.25.2)\n",
+            "Requirement already satisfied: Pillow in /usr/local/lib/python3.10/dist-packages (from mmcv==1.3.4) (9.4.0)\n",
+            "Requirement already satisfied: pyyaml in /usr/local/lib/python3.10/dist-packages (from mmcv==1.3.4) (6.0.1)\n",
+            "Collecting yapf (from mmcv==1.3.4)\n",
+            "  Downloading yapf-0.40.2-py3-none-any.whl.metadata (45 kB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m45.4/45.4 kB\u001b[0m \u001b[31m4.0 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hRequirement already satisfied: importlib-metadata>=6.6.0 in /usr/local/lib/python3.10/dist-packages (from yapf->mmcv==1.3.4) (8.0.0)\n",
+            "Requirement already satisfied: platformdirs>=3.5.1 in /usr/local/lib/python3.10/dist-packages (from yapf->mmcv==1.3.4) (4.2.2)\n",
+            "Requirement already satisfied: tomli>=2.0.1 in /usr/local/lib/python3.10/dist-packages (from yapf->mmcv==1.3.4) (2.0.1)\n",
+            "Requirement already satisfied: zipp>=0.5 in /usr/local/lib/python3.10/dist-packages (from importlib-metadata>=6.6.0->yapf->mmcv==1.3.4) (3.19.2)\n",
+            "Downloading addict-2.4.0-py3-none-any.whl (3.8 kB)\n",
+            "Downloading yapf-0.40.2-py3-none-any.whl (254 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m254.7/254.7 kB\u001b[0m \u001b[31m24.3 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hBuilding wheels for collected packages: mmcv\n",
+            "  Building wheel for mmcv (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for mmcv: filename=mmcv-1.3.4-py2.py3-none-any.whl size=426560 sha256=338d2db6fa62723ecee83b4a34a886326936ca79cc47fade3072a785c8d93b25\n",
+            "  Stored in directory: /root/.cache/pip/wheels/c0/c3/25/9dee8cceb7c7dcee884826a632d296e7275929aa40acde071c\n",
+            "Successfully built mmcv\n",
+            "Installing collected packages: addict, yapf, mmcv\n",
+            "Successfully installed addict-2.4.0 mmcv-1.3.4 yapf-0.40.2\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "X12uK11jySol"
+      },
+      "execution_count": 7,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#print(torch.__version__)\n",
+        "!pip install ftfy regex tqdm\n",
+        "!pip install git+https://github.com/openai/CLIP.git"
+      ],
+      "metadata": {
+        "id": "8q9t6N1YLnIi",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "collapsed": true,
+        "outputId": "e8d2c6d4-f5cc-40d3-c608-236b2506d964"
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting ftfy\n",
+            "  Downloading ftfy-6.2.0-py3-none-any.whl.metadata (7.3 kB)\n",
+            "Requirement already satisfied: regex in /usr/local/lib/python3.10/dist-packages (2024.5.15)\n",
+            "Requirement already satisfied: tqdm in /usr/local/lib/python3.10/dist-packages (4.65.2)\n",
+            "Requirement already satisfied: wcwidth<0.3.0,>=0.2.12 in /usr/local/lib/python3.10/dist-packages (from ftfy) (0.2.13)\n",
+            "Downloading ftfy-6.2.0-py3-none-any.whl (54 kB)\n",
+            "\u001b[?25l   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m0.0/54.4 kB\u001b[0m \u001b[31m?\u001b[0m eta \u001b[36m-:--:--\u001b[0m\r\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m54.4/54.4 kB\u001b[0m \u001b[31m5.1 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hInstalling collected packages: ftfy\n",
+            "Successfully installed ftfy-6.2.0\n",
+            "Collecting git+https://github.com/openai/CLIP.git\n",
+            "  Cloning https://github.com/openai/CLIP.git to /tmp/pip-req-build-79gcm3ei\n",
+            "  Running command git clone --filter=blob:none --quiet https://github.com/openai/CLIP.git /tmp/pip-req-build-79gcm3ei\n",
+            "  Resolved https://github.com/openai/CLIP.git to commit dcba3cb2e2827b402d2701e7e1c7d9fed8a20ef1\n",
+            "  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Requirement already satisfied: ftfy in /usr/local/lib/python3.10/dist-packages (from clip==1.0) (6.2.0)\n",
+            "Requirement already satisfied: packaging in /usr/local/lib/python3.10/dist-packages (from clip==1.0) (24.1)\n",
+            "Requirement already satisfied: regex in /usr/local/lib/python3.10/dist-packages (from clip==1.0) (2024.5.15)\n",
+            "Requirement already satisfied: tqdm in /usr/local/lib/python3.10/dist-packages (from clip==1.0) (4.65.2)\n",
+            "Requirement already satisfied: torch in /usr/local/lib/python3.10/dist-packages (from clip==1.0) (2.3.1+cu121)\n",
+            "Requirement already satisfied: torchvision in /usr/local/lib/python3.10/dist-packages (from clip==1.0) (0.18.1+cu121)\n",
+            "Requirement already satisfied: wcwidth<0.3.0,>=0.2.12 in /usr/local/lib/python3.10/dist-packages (from ftfy->clip==1.0) (0.2.13)\n",
+            "Requirement already satisfied: filelock in /usr/local/lib/python3.10/dist-packages (from torch->clip==1.0) (3.14.0)\n",
+            "Requirement already satisfied: typing-extensions>=4.8.0 in /usr/local/lib/python3.10/dist-packages (from torch->clip==1.0) (4.12.2)\n",
+            "Requirement already satisfied: sympy in /usr/local/lib/python3.10/dist-packages (from torch->clip==1.0) (1.13.1)\n",
+            "Requirement already satisfied: networkx in /usr/local/lib/python3.10/dist-packages (from torch->clip==1.0) (3.3)\n",
+            "Requirement already satisfied: jinja2 in /usr/local/lib/python3.10/dist-packages (from torch->clip==1.0) (3.1.4)\n",
+            "Requirement already satisfied: fsspec in /usr/local/lib/python3.10/dist-packages (from torch->clip==1.0) (2023.6.0)\n",
+            "Collecting nvidia-cuda-nvrtc-cu12==12.1.105 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_cuda_nvrtc_cu12-12.1.105-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-cuda-runtime-cu12==12.1.105 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_cuda_runtime_cu12-12.1.105-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-cuda-cupti-cu12==12.1.105 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_cuda_cupti_cu12-12.1.105-py3-none-manylinux1_x86_64.whl.metadata (1.6 kB)\n",
+            "Collecting nvidia-cudnn-cu12==8.9.2.26 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_cudnn_cu12-8.9.2.26-py3-none-manylinux1_x86_64.whl.metadata (1.6 kB)\n",
+            "Collecting nvidia-cublas-cu12==12.1.3.1 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-cufft-cu12==11.0.2.54 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_cufft_cu12-11.0.2.54-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-curand-cu12==10.3.2.106 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_curand_cu12-10.3.2.106-py3-none-manylinux1_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting nvidia-cusolver-cu12==11.4.5.107 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_cusolver_cu12-11.4.5.107-py3-none-manylinux1_x86_64.whl.metadata (1.6 kB)\n",
+            "Collecting nvidia-cusparse-cu12==12.1.0.106 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_cusparse_cu12-12.1.0.106-py3-none-manylinux1_x86_64.whl.metadata (1.6 kB)\n",
+            "Collecting nvidia-nccl-cu12==2.20.5 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_nccl_cu12-2.20.5-py3-none-manylinux2014_x86_64.whl.metadata (1.8 kB)\n",
+            "Collecting nvidia-nvtx-cu12==12.1.105 (from torch->clip==1.0)\n",
+            "  Using cached nvidia_nvtx_cu12-12.1.105-py3-none-manylinux1_x86_64.whl.metadata (1.7 kB)\n",
+            "Requirement already satisfied: triton==2.3.1 in /usr/local/lib/python3.10/dist-packages (from torch->clip==1.0) (2.3.1)\n",
+            "Collecting nvidia-nvjitlink-cu12 (from nvidia-cusolver-cu12==11.4.5.107->torch->clip==1.0)\n",
+            "  Downloading nvidia_nvjitlink_cu12-12.5.82-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)\n",
+            "Requirement already satisfied: numpy in /usr/local/lib/python3.10/dist-packages (from torchvision->clip==1.0) (1.25.2)\n",
+            "Requirement already satisfied: pillow!=8.3.*,>=5.3.0 in /usr/local/lib/python3.10/dist-packages (from torchvision->clip==1.0) (9.4.0)\n",
+            "Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.10/dist-packages (from jinja2->torch->clip==1.0) (2.1.5)\n",
+            "Requirement already satisfied: mpmath<1.4,>=1.1.0 in /usr/local/lib/python3.10/dist-packages (from sympy->torch->clip==1.0) (1.3.0)\n",
+            "Using cached nvidia_cublas_cu12-12.1.3.1-py3-none-manylinux1_x86_64.whl (410.6 MB)\n",
+            "Using cached nvidia_cuda_cupti_cu12-12.1.105-py3-none-manylinux1_x86_64.whl (14.1 MB)\n",
+            "Using cached nvidia_cuda_nvrtc_cu12-12.1.105-py3-none-manylinux1_x86_64.whl (23.7 MB)\n",
+            "Using cached nvidia_cuda_runtime_cu12-12.1.105-py3-none-manylinux1_x86_64.whl (823 kB)\n",
+            "Using cached nvidia_cudnn_cu12-8.9.2.26-py3-none-manylinux1_x86_64.whl (731.7 MB)\n",
+            "Using cached nvidia_cufft_cu12-11.0.2.54-py3-none-manylinux1_x86_64.whl (121.6 MB)\n",
+            "Using cached nvidia_curand_cu12-10.3.2.106-py3-none-manylinux1_x86_64.whl (56.5 MB)\n",
+            "Using cached nvidia_cusolver_cu12-11.4.5.107-py3-none-manylinux1_x86_64.whl (124.2 MB)\n",
+            "Using cached nvidia_cusparse_cu12-12.1.0.106-py3-none-manylinux1_x86_64.whl (196.0 MB)\n",
+            "Using cached nvidia_nccl_cu12-2.20.5-py3-none-manylinux2014_x86_64.whl (176.2 MB)\n",
+            "Using cached nvidia_nvtx_cu12-12.1.105-py3-none-manylinux1_x86_64.whl (99 kB)\n",
+            "Downloading nvidia_nvjitlink_cu12-12.5.82-py3-none-manylinux2014_x86_64.whl (21.3 MB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m21.3/21.3 MB\u001b[0m \u001b[31m14.0 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hBuilding wheels for collected packages: clip\n",
+            "  Building wheel for clip (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for clip: filename=clip-1.0-py3-none-any.whl size=1369529 sha256=750c1a80457eb77f23f250126af35085b181d268a74a5137cedf1fdfd4e3cbf8\n",
+            "  Stored in directory: /tmp/pip-ephem-wheel-cache-yozy3wxc/wheels/da/2b/4c/d6691fa9597aac8bb85d2ac13b112deb897d5b50f5ad9a37e4\n",
+            "Successfully built clip\n",
+            "Installing collected packages: nvidia-nvtx-cu12, nvidia-nvjitlink-cu12, nvidia-nccl-cu12, nvidia-curand-cu12, nvidia-cufft-cu12, nvidia-cuda-runtime-cu12, nvidia-cuda-nvrtc-cu12, nvidia-cuda-cupti-cu12, nvidia-cublas-cu12, nvidia-cusparse-cu12, nvidia-cudnn-cu12, nvidia-cusolver-cu12, clip\n",
+            "Successfully installed clip-1.0 nvidia-cublas-cu12-12.1.3.1 nvidia-cuda-cupti-cu12-12.1.105 nvidia-cuda-nvrtc-cu12-12.1.105 nvidia-cuda-runtime-cu12-12.1.105 nvidia-cudnn-cu12-8.9.2.26 nvidia-cufft-cu12-11.0.2.54 nvidia-curand-cu12-10.3.2.106 nvidia-cusolver-cu12-11.4.5.107 nvidia-cusparse-cu12-12.1.0.106 nvidia-nccl-cu12-2.20.5 nvidia-nvjitlink-cu12-12.5.82 nvidia-nvtx-cu12-12.1.105\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "### Uncomment below if first time pulling from HuggingFace once.\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "l0ssiP7lIpqT"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#### Uncomment below if first time pulling from HuggingFace once.\n",
+        "\n",
+        "\n",
+        "#needed to clone this repo\n",
+        "# !git lfs install\n",
+        "\n",
+        "# #First, check the \"infernece\" folder to see if the model was put there in a previous run\n",
+        "# #If it is not, re-download the repo and move the \"diff_foley_ckpt\" folder into \"inference\"\n",
+        "# !rm -rf /content/drive/MyDrive/Diff-Foley-Workspace/Diff-Foley\n",
+        "\n",
+        "# #This is the pretrained model from Hugging Face. Use git to download the repo and move files to \"inference\" folder.\n",
+        "# !git clone https://huggingface.co/SimianLuo/Diff-Foley /content/drive/MyDrive/Diff-Foley-Workspace/Diff-Foley"
+      ],
+      "metadata": {
+        "id": "zk8yKxllianO"
+      },
+      "execution_count": 9,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "\n",
+        "## Run Model"
+      ],
+      "metadata": {
+        "id": "7QroOEuSQSW7"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Consolidate working path so that we can reference out working space\n",
+        "\n",
+        "import os\n",
+        "workspace_path = os.path.join(\"/\",\"content\", \"drive\",\"MyDrive\", \"Diff-Foley-Workspace\")\n",
+        "%cd drive/MyDrive/Diff-Foley-Workspace/\n",
+        "%ls"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "nc6celRbJf2Q",
+        "outputId": "3cbe5679-05fd-45b4-bb63-20b32f506350"
+      },
+      "execution_count": 10,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "/content/drive/MyDrive/Diff-Foley-Workspace\n",
+            "\u001b[0m\u001b[01;34mdata_preprocess\u001b[0m/  \u001b[01;34mDiff-Foley\u001b[0m/  \u001b[01;34mgenerate_samples\u001b[0m/  LICENSE    requirements.txt  \u001b[01;34mtraining\u001b[0m/\n",
+            "\u001b[01;34mdiff_foley\u001b[0m/       \u001b[01;34mevaluation\u001b[0m/  \u001b[01;34minference\u001b[0m/         README.md  teaser.png\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 11,
+      "metadata": {
+        "id": "2KBu9pv2HJSU"
+      },
+      "outputs": [],
+      "source": [
+        "from omegaconf import OmegaConf #needed for loading LDM Model\n",
+        "import os\n",
+        "import torch\n",
+        "import numpy as np\n",
+        "import librosa\n",
+        "import soundfile as sf\n",
+        "from tqdm import tqdm\n",
+        "\n",
+        "import sys\n",
+        "sys.path.append(\"/\".join(os.getcwd().split(\"/\")[:-1]))\n",
+        "from diff_foley.util import instantiate_from_config #looks like this is located in diff_foley/modules"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 12,
+      "metadata": {
+        "id": "6NQFoWM2HJSW",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 498
+        },
+        "outputId": "e49b45c4-f4ba-4987-9aab-a18cc888af48"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Initalize Stage1 CAVP Model\n",
+            "Loading Stage1 CAVP Model from: /content/drive/MyDrive/Diff-Foley-Workspace/Diff-Foley/diff_foley_ckpt/cavp_epoch66.ckpt\n"
+          ]
+        },
+        {
+          "output_type": "error",
+          "ename": "KeyboardInterrupt",
+          "evalue": "",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m                         Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-12-3e58d6e9029c>\u001b[0m in \u001b[0;36m<cell line: 17>\u001b[0;34m()\u001b[0m\n\u001b[1;32m     15\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     16\u001b[0m \u001b[0;31m# Initalize CAVP Model:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 17\u001b[0;31m \u001b[0mextract_cavp\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mExtract_CAVP_Features\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mfps\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mfps\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mbatch_size\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mbatch_size\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdevice\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mdevice\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mconfig_path\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mcavp_config_path\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mckpt_path\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mcavp_ckpt_path\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
+            "\u001b[0;32m/content/drive/MyDrive/Diff-Foley-Workspace/inference/demo_util.py\u001b[0m in \u001b[0;36m__init__\u001b[0;34m(self, fps, batch_size, device, tmp_path, video_shape, config_path, ckpt_path)\u001b[0m\n\u001b[1;32m     95\u001b[0m         \u001b[0;32massert\u001b[0m \u001b[0mckpt_path\u001b[0m \u001b[0;32mis\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     96\u001b[0m         \u001b[0mprint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m\"Loading Stage1 CAVP Model from: {}\"\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mformat\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mckpt_path\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 97\u001b[0;31m         \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0minit_first_from_ckpt\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mckpt_path\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     98\u001b[0m         \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mstage1_model\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0meval\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     99\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/content/drive/MyDrive/Diff-Foley-Workspace/inference/demo_util.py\u001b[0m in \u001b[0;36minit_first_from_ckpt\u001b[0;34m(self, path)\u001b[0m\n\u001b[1;32m    106\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    107\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0minit_first_from_ckpt\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mpath\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 108\u001b[0;31m         \u001b[0mmodel\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mtorch\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mload\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mpath\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mmap_location\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m\"cpu\"\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    109\u001b[0m         \u001b[0;32mif\u001b[0m \u001b[0;34m\"state_dict\"\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mlist\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mmodel\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mkeys\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    110\u001b[0m             \u001b[0mmodel\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mmodel\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0;34m\"state_dict\"\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/dist-packages/torch/serialization.py\u001b[0m in \u001b[0;36mload\u001b[0;34m(f, map_location, pickle_module, weights_only, mmap, **pickle_load_args)\u001b[0m\n\u001b[1;32m   1023\u001b[0m                     \u001b[0;32mexcept\u001b[0m \u001b[0mRuntimeError\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1024\u001b[0m                         \u001b[0;32mraise\u001b[0m \u001b[0mpickle\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mUnpicklingError\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mUNSAFE_MESSAGE\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mstr\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0me\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 1025\u001b[0;31m                 return _load(opened_zipfile,\n\u001b[0m\u001b[1;32m   1026\u001b[0m                              \u001b[0mmap_location\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1027\u001b[0m                              \u001b[0mpickle_module\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/dist-packages/torch/serialization.py\u001b[0m in \u001b[0;36m_load\u001b[0;34m(zip_file, map_location, pickle_module, pickle_file, overall_storage, **pickle_load_args)\u001b[0m\n\u001b[1;32m   1444\u001b[0m     \u001b[0munpickler\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mUnpicklerWrapper\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdata_file\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mpickle_load_args\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1445\u001b[0m     \u001b[0munpickler\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpersistent_load\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mpersistent_load\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 1446\u001b[0;31m     \u001b[0mresult\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0munpickler\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mload\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   1447\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1448\u001b[0m     \u001b[0mtorch\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_utils\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_validate_loaded_sparse_tensors\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/dist-packages/torch/serialization.py\u001b[0m in \u001b[0;36mpersistent_load\u001b[0;34m(saved_id)\u001b[0m\n\u001b[1;32m   1414\u001b[0m         \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1415\u001b[0m             \u001b[0mnbytes\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mnumel\u001b[0m \u001b[0;34m*\u001b[0m \u001b[0mtorch\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_utils\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_element_size\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdtype\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 1416\u001b[0;31m             \u001b[0mtyped_storage\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mload_tensor\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdtype\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnbytes\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mkey\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0m_maybe_decode_ascii\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mlocation\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   1417\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1418\u001b[0m         \u001b[0;32mreturn\u001b[0m \u001b[0mtyped_storage\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/dist-packages/torch/serialization.py\u001b[0m in \u001b[0;36mload_tensor\u001b[0;34m(dtype, numel, key, location)\u001b[0m\n\u001b[1;32m   1379\u001b[0m             \u001b[0mstorage\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0moverall_storage\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0mstorage_offset\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0mstorage_offset\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mnumel\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1380\u001b[0m         \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m-> 1381\u001b[0;31m             \u001b[0mstorage\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mzip_file\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mget_storage_from_record\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mname\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnumel\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtorch\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mUntypedStorage\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_typed_storage\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_untyped_storage\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m   1382\u001b[0m         \u001b[0;31m# swap here if byteswapping is needed\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1383\u001b[0m         \u001b[0;32mif\u001b[0m \u001b[0mbyteorderdata\u001b[0m \u001b[0;32mis\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0;32mNone\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m: "
+          ]
+        }
+      ],
+      "source": [
+        "import sys\n",
+        "sys.path.append(os.path.join(workspace_path, \"inference\"))\n",
+        "from demo_util import Extract_CAVP_Features\n",
+        "\n",
+        "# Set Device:\n",
+        "os.environ[\"CUDA_VISIBLE_DEVICES\"] = \"0\"\n",
+        "device = torch.device(\"cuda\")\n",
+        "# Default Setting:\n",
+        "\n",
+        "fps = 4                                                     #  CAVP default FPS=4, Don't change it.\n",
+        "batch_size = 40   # Don't change it.\n",
+        "cavp_config_path = \"./inference/config/Stage1_CAVP.yaml\"              #  CAVP Config\n",
+        "cavp_ckpt_path = os.path.join(workspace_path, \"Diff-Foley/diff_foley_ckpt/cavp_epoch66.ckpt\")      #  CAVP Ckpt\n",
+        "os.path.exists(cavp_ckpt_path)\n",
+        "\n",
+        "# Initalize CAVP Model:\n",
+        "extract_cavp = Extract_CAVP_Features(fps=fps, batch_size=batch_size, device=device, config_path=cavp_config_path, ckpt_path=cavp_ckpt_path)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "YrMjQC3DHJSW"
+      },
+      "source": [
+        "### 2. Loading Stage2 LDM Model:"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "# --------------------------------------------------------------------------------------------------\n",
+        "\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "kKs5b8uQmhaD"
+      }
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "sRDr9sK5HJSX"
+      },
+      "outputs": [],
+      "source": [
+        "def load_model_from_config(config, ckpt, verbose=False):\n",
+        "    print(f\"Loading model from {ckpt}\")\n",
+        "    pl_sd = torch.load(ckpt, map_location=\"cpu\")\n",
+        "    if \"global_step\" in pl_sd:\n",
+        "        print(f\"Global Step: {pl_sd['global_step']}\")\n",
+        "    sd = pl_sd[\"state_dict\"]\n",
+        "    model = instantiate_from_config(config.model)\n",
+        "    m, u = model.load_state_dict(sd, strict=False)\n",
+        "    if len(m) > 0 and verbose:\n",
+        "        print(\"missing keys:\")\n",
+        "        print(m)\n",
+        "    if len(u) > 0 and verbose:\n",
+        "        print(\"unexpected keys:\")\n",
+        "        print(u)\n",
+        "    model.cuda()\n",
+        "    model.eval()\n",
+        "    return model"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "8nJs2b9FHJSX"
+      },
+      "outputs": [],
+      "source": [
+        "# LDM Config:\n",
+        "ldm_config_path = \"/content/drive/MyDrive/Diff-Foley-Workspace/inference/config/Stage2_LDM.yaml\"\n",
+        "ldm_ckpt_path = \"/content/drive/MyDrive/Diff-Foley-Workspace/Diff-Foley/diff_foley_ckpt/ldm_epoch240.ckpt\"\n",
+        "config = OmegaConf.load(ldm_config_path)\n",
+        "\n",
+        "# Loading LDM:\n",
+        "#The load_model_from_config function uses the provided configuration to instantiate and initialize a LatentDiffusion model, \\\n",
+        "#including its submodules (UNetModel, AutoencoderKL, and Video_Feat_Encoder_Posembed). The model is loaded with the weights \\\n",
+        "# from the checkpoint file and moved to the GPU for inference. The configuration ensures that all components are correctly \\\n",
+        "# set up and initialized according to the specified parameters.\n",
+        "latent_diffusion_model = load_model_from_config(config, ldm_ckpt_path)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "SPv6us-7HJSX"
+      },
+      "source": [
+        "### 3. Data Preprocess"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "1davBZ65HJSX"
+      },
+      "outputs": [],
+      "source": [
+        "\n",
+        "# Sample1:\n",
+        "#video_path = os.path.join(workspace_path, \"inference\", \"demo_videos/gun.mp4\")\n",
+        "#save_path = os.path.join(workspace_path, \"generate_samples/gun\")\n",
+        "#tmp_path = os.path.join(workspace_path, \"generate_samples/temp_folder\")\n",
+        "\n",
+        "## Sample2:\n",
+        "video_path = os.path.join(workspace_path, \"inference\",\"demo_videos/drum.mp4\")\n",
+        "save_path = os.path.join(workspace_path, \"generate_samples/drum\")\n",
+        "tmp_path = os.path.join(workspace_path, \"generate_samples/temp_folder\")\n",
+        "\n",
+        "## Sample3:\n",
+        "# video_path = os.path.join(workspace_path, \"./demo_videos/car.mp4\"\n",
+        "# save_path = os.path.join(workspace_path, \"./generate_samples/car\"\n",
+        "# tmp_path = os.path.join(workspace_path, \"./generate_samples/temp_folder\"\n",
+        "\n",
+        "\n",
+        "start_second = 0              # Video start second\n",
+        "truncate_second = 8.2         # Video end = start_second + truncate_second\n",
+        "\n",
+        "# Extract Video CAVP Features & New Video Path:\n",
+        "cavp_feats, new_video_path = extract_cavp(video_path, start_second, truncate_second, tmp_path=tmp_path)\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "cavp_feats.shape\n"
+      ],
+      "metadata": {
+        "id": "qWwb9CqSkXCF"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "gBV8gnR6HJSY"
+      },
+      "outputs": [],
+      "source": [
+        "def seed_everything(seed):\n",
+        "    import random, os\n",
+        "    import numpy as np\n",
+        "    import torch\n",
+        "    random.seed(seed)\n",
+        "    os.environ['PYTHONHASHSEED'] = str(seed)\n",
+        "    np.random.seed(seed)\n",
+        "    torch.manual_seed(seed)\n",
+        "    torch.cuda.manual_seed(seed)\n",
+        "    torch.backends.cudnn.deterministic = True\n",
+        "    torch.backends.cudnn.benchmark = True\n",
+        "seed_everything(21)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "4ftVrh7fHJSY"
+      },
+      "source": [
+        "### 4. Diff-Foley Generation:"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "tsI39H3FHJSY"
+      },
+      "outputs": [],
+      "source": [
+        "from demo_util import inverse_op\n",
+        "\n",
+        "sample_num = 4\n",
+        "\n",
+        "# Inference Param:\n",
+        "cfg_scale = 4.5      # Classifier-Free Guidance Scale\n",
+        "cg_scale = 50        # Classifier Guidance Scale\n",
+        "\n",
+        "\n",
+        "steps = 25                # Inference Steps\n",
+        "\n",
+        "sampler = \"DPM_Solver\"    # DPM-Solver Sampler\n",
+        "# sampler = \"DDIM\"        # DDIM Sampler\n",
+        "# sampler = \"PLMS\"        # PLMS Sampler\n",
+        "\n",
+        "\n",
+        "save_path = save_path + \"_CFG{}_CG{}_{}_{}_useDG_{}\".format(cfg_scale, cg_scale, sampler, steps, use_double_guidance)\n",
+        "os.makedirs(save_path, exist_ok=True)\n",
+        "\n",
+        "# Video CAVP Features:\n",
+        "# [4,33,512]\n",
+        "#create tensor of 4 copies. where is the encoder part?\n",
+        "video_feat = torch.from_numpy(cavp_feats).unsqueeze(0).repeat(sample_num, 1, 1).to(device)\n",
+        "print(\"video_feat.shape: \", video_feat.shape)\n",
+        "\n",
+        "\n",
+        "# Truncate the Video Cond:\n",
+        "feat_len = video_feat.shape[1]\n",
+        "truncate_len = 32\n",
+        "window_num = feat_len // truncate_len\n",
+        "\n",
+        "\n",
+        "audio_list = []     # [sample_list1, sample_list2, sample_list3 ....]\n",
+        "for i in tqdm(range(window_num), desc=\"Window:\"):\n",
+        "    start, end = i * truncate_len, (i+1) * truncate_len\n",
+        "\n",
+        "    # 1). Get Video Condition Embed:\n",
+        "    #This model (latent_diffusion_model) is loaded from a checkpoint file\n",
+        "    #code for this is in ddpm.py\n",
+        "    #what does this do?\n",
+        "    #looks like it learns and encodes some temporal information into the video\n",
+        "    #and is used for the guidance\n",
+        "    #The line of code extracts a subset of video features and processes them through the get_learned_conditioning method of the latent diffusion model. This method applies some form of encoding or conditioning to the input features, resulting in an embedding that is used for further processing in the model.\n",
+        "    embed_cond_feat = latent_diffusion_model.get_learned_conditioning(video_feat[:, start:end])\n",
+        "\n",
+        "    # 2). CFG unconditional Embedding:\n",
+        "    uncond_cond = torch.zeros(embed_cond_feat.shape).to(device)\n",
+        "\n",
+        "    # 3). Diffusion Sampling:\n",
+        "    print(\"Using Double Guidance: {}\".format(use_double_guidance))\n",
+        "    if use_double_guidance:\n",
+        "        audio_samples, _ = latent_diffusion_model.sample_log_with_classifier_diff_sampler(embed_cond_feat, origin_cond=video_feat, batch_size=video_feat.shape[0], sampler_name=sampler, ddim_steps=steps, unconditional_guidance_scale=cfg_scale,unconditional_conditioning=uncond_cond,classifier=classifier, classifier_guide_scale=cg_scale)  # Double Guidance\n",
+        "    else:\n",
+        "        audio_samples, _ = latent_diffusion_model.sample_log_diff_sampler(embed_cond_feat, batch_size=sample_num, sampler_name=sampler, ddim_steps=steps, unconditional_guidance_scale=cfg_scale,unconditional_conditioning=uncond_cond)           #  Classifier-Free Guidance\n",
+        "\n",
+        "    # 4). Decode Latent:\n",
+        "    audio_samples = latent_diffusion_model.decode_first_stage(audio_samples)\n",
+        "    audio_samples = audio_samples[:, 0, :, :].detach().cpu().numpy()\n",
+        "\n",
+        "    # 5). Spectrogram -> Audio:  (Griffin-Lim Algorithm)\n",
+        "    sample_list = []        #    [sample1, sample2, ....]\n",
+        "    for k in tqdm(range(audio_samples.shape[0]), desc=\"current samples:\"):\n",
+        "        sample = inverse_op(audio_samples[k])\n",
+        "        sample_list.append(sample)\n",
+        "    audio_list.append(sample_list)"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "fGZZ0t_wHJSY"
+      },
+      "source": [
+        "#### 4.(a) Double Guidance Load:"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "QZSuSDZ-HJSY"
+      },
+      "outputs": [],
+      "source": [
+        "# Whether use Double Guidance:\n",
+        "use_double_guidance = True\n",
+        "\n",
+        "if use_double_guidance:\n",
+        "    classifier_config_path = os.path.join(workspace_path, \"inference\", \"config/Double_Guidance_Classifier.yaml\")\n",
+        "    classifier_ckpt_path = os.path.join(workspace_path, \"Diff-Foley\", \"diff_foley_ckpt/double_guidance_classifier.ckpt\")\n",
+        "    classifier_config = OmegaConf.load(classifier_config_path)\n",
+        "    classifier = load_model_from_config(classifier_config, classifier_ckpt_path)\n"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "8cvxCWFiHJSZ"
+      },
+      "outputs": [],
+      "source": [
+        "# Save Samples:\n",
+        "path_list = []\n",
+        "for i in range(sample_num):      # sample_num\n",
+        "    current_audio_list = []\n",
+        "    for k in range(window_num):\n",
+        "        current_audio_list.append(audio_list[k][i])\n",
+        "    current_audio = np.concatenate(current_audio_list,0)\n",
+        "    print(current_audio.shape)\n",
+        "    sf.write(os.path.join(save_path, \"sample_{}_diff.wav\").format(i), current_audio, 16000)\n",
+        "    path_list.append(os.path.join(save_path, \"sample_{}_diff.wav\").format(i))\n",
+        "print(\"Gen Success !!\")"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "h7wFdtvrHJSZ"
+      },
+      "outputs": [],
+      "source": [
+        "# Concat The Video and Sound:\n",
+        "import subprocess\n",
+        "src_video_path = new_video_path\n",
+        "for i in range(sample_num):\n",
+        "    gen_audio_path = path_list[i]\n",
+        "    out_path = os.path.join(save_path, \"output_{}.mp4\".format(i))\n",
+        "    cmd = [\"ffmpeg\" ,\"-i\" ,src_video_path,\"-i\" , gen_audio_path ,\"-c:v\" ,\"copy\" ,\"-c:a\" ,\"aac\" ,\"-strict\" ,\"experimental\", out_path]\n",
+        "    # cmd = [\"ffmpeg\" ,\"-i\" ,src_video_path,\"-i\" , gen_audio_path ,\"-c:v\" ,\"copy\" ,\"-c:a\" ,\"mp3\" ,\"-strict\" ,\"experimental\", out_path]\n",
+        "    subprocess.check_call(cmd)\n",
+        "print(\"Gen Success !!\")"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import torch\n",
+        "print(torch.cuda.device_count())\n"
+      ],
+      "metadata": {
+        "id": "P8PowymdSfSV"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "display_name": "Python 3",
+      "name": "python3"
+    },
+    "language_info": {
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.8.8"
+    },
+    "orig_nbformat": 4,
+    "colab": {
+      "provenance": [],
+      "gpuType": "T4",
+      "include_colab_link": true
+    },
+    "accelerator": "GPU"
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
